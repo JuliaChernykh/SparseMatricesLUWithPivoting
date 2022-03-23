@@ -1,0 +1,22 @@
+%%MatrixMarket matrix coordinate real general
+%-------------------------------------------------------------------------------
+% UF Sparse Matrix Collection, Tim Davis
+% http://www.cise.ufl.edu/research/sparse/matrices/HB/impcol_b
+% name: HB/impcol_b
+% [UNSYMMETRIC MATRIX - CAVETT'S PROCESS (CHEM ENG),1982]
+% id: 172
+% date: 1982
+% author: D. Bogle
+% ed: I. Duff, R. Grimes, J. Lewis
+% fields: title A Zeros name id date author ed kind
+% kind: chemical process simulation problem
+%-------------------------------------------------------------------------------
+5 5 8
+2 1 2
+4 1 -4
+1 2 3
+2 2 9
+5 3 2
+3 4 -4
+1 5 1
+5 5 -9
