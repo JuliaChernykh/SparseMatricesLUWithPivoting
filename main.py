@@ -27,6 +27,7 @@ for matrix in collection:
         LU, P, Q = LU_decompose(matrix, method)
         end = time.time()
         table.append([f'{matrix.n}', pivoting_methods_names[idx], f'{(len(LU.values) - len(matrix.values)) / len(matrix.values)}', f'{end - start}', ''])
+        print(tabulate(table, tablefmt='fancy_grid', headers='firstrow'))
 
 output(tabulate(table, tablefmt='fancy_grid', headers='firstrow'))
 
