@@ -1,39 +1,91 @@
-def get_pivot_with_lowest_local_filling_estimate(matrix, k):
+import numpy as np
+from typing import Callable
+from functools import partial
+
+def get_pivot_with_lowest_local_filling_estimate(matrix, k, estimation: Callable):
     min_estimation = 100000000
+    row, col = k, k
+    rows, cols = calculate_non_zeros(matrix, k)
     for i in range(k, matrix.n):
-        for j in range(k, matrix.n):
-            cur_estimation = get_estimation(matrix, i, j)
-            if cur_estimation < min_estimation and matrix.get_element(i, j) != 0:
-                min_estimation = cur_estimation
-                row, col = i, j
+        for j in range(matrix.row_start[i], matrix.row_start[i+1]):
+            if matrix.cols[j] >= k:
+                cur_estimation = estimation(cols[matrix.cols[j]], rows[i])
+                if cur_estimation < min_estimation:
+                    min_estimation = cur_estimation
+                    row, col = i, matrix.cols[j]
+
     return row, col
 
-def get_pivot_with_lowest_local_filling_estimate_2(matrix, k):
-    min_estimation = 100000000
-    for i in range(k, matrix.n):
-        for j in range(k, matrix.n):
-            cur_estimation = get_estimation_2(matrix, i, j)
-            if cur_estimation < min_estimation and matrix.get_element(i, j) != 0:
-                min_estimation = cur_estimation
-                row, col = i, j
-    return row, col
+def calculate_non_zeros(matrix, k):
+    cols = np.zeros(len(matrix.row_start) - 1)
+    rows = np.zeros(len(matrix.row_start) - 1)
 
-def get_estimation(matrix, row, col):
-    n_cj = get_n_cj(matrix, col)
-    n_ri = get_n_ri(matrix, row)
+    for i in range(k, matrix.n):
+        for j in range(matrix.row_start[i], matrix.row_start[i+1]):
+            if matrix.cols[j] >= k:
+                rows[i] += 1
+                cols[matrix.cols[j]] += 1
+
+    return rows, cols
+
+#  minimizing the product of the row count and the column count
+def get_estimation(n_cj, n_ri):
     return (n_cj - 1)*(n_ri - 1)
 
-def get_estimation_2(matrix, row, col):
-    n_cj = get_n_cj(matrix, col)
-    n_ri = get_n_ri(matrix, row)
+#  minimizing the sum of the row count and the column count
+def get_estimation_2(n_cj, n_ri):
     return (n_cj - 1) + (n_ri - 1)
 
-def get_n_cj(matrix, col):
-    count = 0
-    for i in range(len(matrix.cols)):
-        if matrix.cols[i] == col and matrix.values[i] != 0:
-            count += 1
-    return count
+#  minimizing the product of the row count and the square of the column count
+def get_estimation_3(n_cj, n_ri):
+    return ((n_cj - 1)**2)*(n_ri - 1)
 
-def get_n_ri(matrix, row):
-    return len(list(filter(lambda x: x != 0, matrix.values[matrix.row_start[row]:matrix.row_start[row + 1]])))
+def without_pivoting(matrix, k):
+    return k, k
+
+# taking the non-zero in the row with minimum row count which has minimum column count
+def get_pivot_from_min_row_column_count(matrix, k):
+    min_row_count = 100000000000
+    min_row_count_i = -1
+    min_col_count_j = -1
+    min_col_count = 100000000000
+
+    for i in range(k, matrix.n):
+        for j in range(matrix.row_start[i], matrix.row_start[i+1]):
+            if matrix.cols[j] >= k:
+                if 0 < matrix.row_start[i + 1] - j < min_row_count:
+                    min_row_count = matrix.row_start[i + 1] - matrix.row_start[i]
+                    min_row_count_i = i
+
+    for j in range(matrix.row_start[min_row_count_i], matrix.row_start[min_row_count_i + 1]):
+        if matrix.cols[j] >= k:
+            cols_count = matrix.cols[matrix.row_start[k]:].count(matrix.cols[j])
+            if cols_count < min_col_count:
+                min_col_count = cols_count
+                min_col_count_j = matrix.cols[j]
+            break
+
+    return min_row_count_i, min_col_count_j
+
+# taking the non-zero in the column with minimum column count which has minimum row count
+def get_pivot_from_min_column_row_count(matrix, k):
+    rows, cols = calculate_non_zeros(matrix, k)
+    min_row_count = 100000000000
+    min_row_count_i = -1
+    min_col_count_j = -1
+    min_col_count = 100000000000
+
+    for j in range(k, matrix.n):
+        if cols[j] < min_col_count:
+            min_col_count = cols[j]
+            min_col_count_j = j
+
+    for i in range(k, matrix.n):
+        for j in range(matrix.row_start[i], matrix.row_start[i+1]):
+            if matrix.cols[j] == min_col_count_j:
+                if rows[i] < min_row_count:
+                    min_row_count = rows[i]
+                    min_row_count_i = i
+                break
+
+    return min_row_count_i, min_col_count_j

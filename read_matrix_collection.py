@@ -1,14 +1,9 @@
-import ssgetpy
 import os
 import tarfile
 
-def download_data():
-    ssgetpy.search(rowbounds=(50, 100)).download(destpath='data_zipped')
-
-
 def reformat_to_csr(lines):
     comment_length = 12
-    n = list(map(int, lines[comment_length + 1].split(' ')))[0]
+    n = list(map(int, lines[comment_length + 1].strip().split(' ')))[0]
     lines = lines[comment_length + 2:]
     values, cols, next_row = [], [], []
     prev_i = -1
@@ -38,15 +33,15 @@ def reformat_to_csr(lines):
 def read_data():
     collection = []
 
-    for root, dirs, files in os.walk("data_zipped"):
+    for root, dirs, files in os.walk("data/data_zipped"):
         for file in files:
-            with tarfile.open(f'data_zipped/{file}', mode='r') as f:
-                f.extractall(path='data_unzipped')
+            with tarfile.open(f'data/data_zipped/{file}', mode='r') as f:
+                f.extractall(path='data/data_unzipped')
 
-    for root, dirs, _ in os.walk("data_unzipped"):
+    for root, dirs, _ in os.walk("data/data_unzipped"):
         for dir in dirs:
-            for _, _, files in os.walk(f"data_unzipped/{dir}"):
-                with open(f'data_unzipped/{dir}/{files[0]}', mode='r') as f:
+            for _, _, files in os.walk(f"data/data_unzipped/{dir}"):
+                with open(f'data/data_unzipped/{dir}/{files[0]}', mode='r') as f:
                     collection.append(reformat_to_csr(f.readlines()))
 
     return collection
