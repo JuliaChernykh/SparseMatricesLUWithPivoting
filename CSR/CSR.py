@@ -1,36 +1,6 @@
+from functools import lru_cache
 import bisect
 import numpy as np
-
-
-class Vector:
-    def __init__(self, values=None, indicies=None):
-        self.values = values if values is not None else []
-        self.indicies = indicies if indicies is not None else []
-
-    def add_element(self, val, index):
-        self.values.append(val)
-        self.indicies.append(index)
-
-    def __mul__(self, other):
-        result = 0
-        l_pointer = 0
-        r_pointer = 0
-        while l_pointer < len(self.indicies) and r_pointer < len(other.indicies):
-            if self.indicies[l_pointer] == other.indicies[r_pointer]:
-                result += self.values[l_pointer]*other.values[r_pointer]
-                l_pointer += 1
-                r_pointer += 1
-            elif self.indicies[l_pointer] < other.indicies[r_pointer]:
-                l_pointer += 1
-            else:
-                r_pointer += 1
-        return result
-
-    def __str__(self):
-        return str(self.values) + str(self.indicies)
-
-    def __repr__(self):
-        return str(self.values) + str(self.indicies)
 
 
 class CSR:
@@ -128,10 +98,13 @@ class CSR:
     def multiply_by_2(self, m):
         result = CSR([], [], [0], self.n)
         not_zero_cnt = 0
+        cols = []
+        for j in range(self.n):
+            cols.append(m.get_col_vector(j))
         for i in range(self.n):
             row = self.get_row_vector(i)
             for j in range(self.n):
-                col = m.get_col_vector(j)
+                col = cols[j]
                 i_j = row * col
                 if i_j != 0:
                     result.values.append(i_j)
@@ -189,8 +162,8 @@ class CSR:
             self.add_row(i, cols[row_start[i]:row_start[i + 1]], values[row_start[i]:row_start[i + 1]])
 
     def get_matrix(self):
-        matrix = np.array([[float(0)] * self.n for i in range(len(self.row_start) - 1)])
-        for i in range(len(self.row_start) - 1):
+        matrix = np.array([[float(0)] * self.n for i in range(self.n)])
+        for i in range(self.n):
             for j in range(self.row_start[i], self.row_start[i + 1]):
                 matrix[i][self.cols[j]] = self.values[j]
         return matrix
@@ -304,14 +277,46 @@ class CSR:
                self.row_start == other.row_start
 
 
+class Vector:
+    def __init__(self, values=None, indicies=None):
+        self.values = values if values is not None else []
+        self.indicies = indicies if indicies is not None else []
+
+    def add_element(self, val, index):
+        self.values.append(val)
+        self.indicies.append(index)
+
+    def __mul__(self, other):
+        result = 0
+        l_pointer = 0
+        r_pointer = 0
+        while l_pointer < len(self.indicies) and r_pointer < len(other.indicies):
+            if self.indicies[l_pointer] == other.indicies[r_pointer]:
+                result += self.values[l_pointer]*other.values[r_pointer]
+                l_pointer += 1
+                r_pointer += 1
+            elif self.indicies[l_pointer] < other.indicies[r_pointer]:
+                l_pointer += 1
+            else:
+                r_pointer += 1
+        return result
+
+    def __str__(self):
+        return str(self.values) + str(self.indicies)
+
+    def __repr__(self):
+        return str(self.values) + str(self.indicies)
+
+
 def is_permissible_value(value):
-    eps = 1e-15
+    eps = 1e-9
     return abs(value) > eps
 
 def reformat_to_CSR(matrix):
     values = []
     cols = []
     row_start = [0]
+
     for i in range(len(matrix)):
         count = 0
         for j in range(len(matrix[i])):

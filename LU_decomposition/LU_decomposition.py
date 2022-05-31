@@ -1,6 +1,7 @@
 from CSR.CSR import CSR
 from tqdm import tqdm
 
+
 def LU_decompose(matrix, get_pivot_position):
     P = CSR([1] * matrix.n, list(range(matrix.n)), list(range(matrix.n + 1)), matrix.n)  # rows permutations
     Q = CSR([1] * matrix.n, list(range(matrix.n)), list(range(matrix.n + 1)), matrix.n)  # cols permutations
@@ -18,6 +19,7 @@ def LU_decompose(matrix, get_pivot_position):
                 new_value = LU.get_element(j, k) - coef * LU.get_element(i, k)
                 LU.set_value(new_value, j, k)
     return LU, P, Q
+
 
 def make_transposition(LU, P, Q, pivot_row, pivot_col, k):
     if k != pivot_row:

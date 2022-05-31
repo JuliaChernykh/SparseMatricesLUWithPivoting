@@ -17,8 +17,8 @@ def get_pivot_with_lowest_local_filling_estimate(matrix, k, estimation: Callable
     return row, col
 
 def calculate_non_zeros(matrix, k):
-    cols = np.zeros(len(matrix.row_start) - 1)
-    rows = np.zeros(len(matrix.row_start) - 1)
+    cols = np.zeros(matrix.n)
+    rows = np.zeros(matrix.n)
 
     for i in range(k, matrix.n):
         for j in range(matrix.row_start[i], matrix.row_start[i+1]):
@@ -54,8 +54,9 @@ def get_pivot_from_min_row_column_count(matrix, k):
         for j in range(matrix.row_start[i], matrix.row_start[i+1]):
             if matrix.cols[j] >= k:
                 if 0 < matrix.row_start[i + 1] - j < min_row_count:
-                    min_row_count = matrix.row_start[i + 1] - matrix.row_start[i]
+                    min_row_count = matrix.row_start[i + 1] - j
                     min_row_count_i = i
+                break
 
     for j in range(matrix.row_start[min_row_count_i], matrix.row_start[min_row_count_i + 1]):
         if matrix.cols[j] >= k:
@@ -63,7 +64,6 @@ def get_pivot_from_min_row_column_count(matrix, k):
             if cols_count < min_col_count:
                 min_col_count = cols_count
                 min_col_count_j = matrix.cols[j]
-            break
 
     return min_row_count_i, min_col_count_j
 
@@ -76,7 +76,7 @@ def get_pivot_from_min_column_row_count(matrix, k):
     min_col_count = 100000000000
 
     for j in range(k, matrix.n):
-        if cols[j] < min_col_count:
+        if 0 < cols[j] < min_col_count:
             min_col_count = cols[j]
             min_col_count_j = j
 

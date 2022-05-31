@@ -13,8 +13,14 @@ def multiply_LU(LU):
     return L @ U
 
 def check_equality(m1, m2):
-    eps = 1e-10
+    eps = 1e-7
     return np.all(np.abs(m1 - m2) < eps)
 
 def test(A, P, Q, LU):
-    return check_equality(P.get_matrix() @ A.get_matrix() @ Q.get_matrix(), multiply_LU(LU))
+    init_m = P.get_matrix() @ A.get_matrix() @ Q.get_matrix()
+    lu_m = multiply_LU(LU)
+    print(np.nonzero(np.abs(P.get_matrix() @ A.get_matrix() @ Q.get_matrix() - multiply_LU(LU)) > 1e-7))
+    # print(init_m[10, 0], lu_m[10, 0])
+    # print(init_m[19, 9], lu_m[19, 9])
+    # print(init_m[23, 13], lu_m[23, 13])
+    return check_equality(init_m, lu_m)
